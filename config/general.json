@@ -1,0 +1,9 @@
+{
+    "port": 3001,
+    "nanpay": "8753e973-171f-4caa-8e73-477a9d75d6f8",
+    "wallet": "https://nanpay.pilou.cc",
+    "nanauth": "kikouswap",
+    "marge": 0.95,
+    "telegram_token": "7027962258:AAEPKi3nqw508Q4FQgLiHHXQUus4bnBDCyU",
+    "telegram_chat": 1655829131
+}

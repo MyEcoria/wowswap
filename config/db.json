@@ -1,0 +1,7 @@
+{
+    "host": "localhost",
+    "user": "newuser",
+    "password": "password",
+    "database": "wowswap",
+    "port": 3306
+}
