@@ -2,7 +2,7 @@ import express from 'express';
 import config from './config/general.json' assert { type: 'json' };
 import swap from './config/swap.json' assert { type: 'json' };
 import { getPairRate, getReverseRate } from './modules/getMarket.mjs';
-import { generateShortUUID } from './modules/utils.mjs';
+import { generateShortUUID, isValidNanoAddress, isValidWowneroAddress } from './modules/utils.mjs';
 import { createDepositAdd, createWithdraw } from './modules/wallet.mjs';
 import { changeMoneyReceive, changeToError, changeToFinish, changeToSending, createSwap, getInfoByAddress, getInfoByUUID } from './modules/db.mjs';
 import  TelegramBot from 'node-telegram-bot-api';
@@ -129,6 +129,16 @@ app.post('/create-order', async (req, res) => {
     if (isNaN(amountNumber)) {
         return res.status(400).send('Le paramètre "amount" doit être un nombre.');
     }
+
+  if (to == "WOW") {
+    if (!isValidWowneroAddress(toAddress)) {
+      return res.json({status: "error", message: "Invalid wownero address"});
+    }
+  } else {
+    if (!isValidNanoAddress(toAddress)) {
+      return res.json({status: "error", message: "Invalid nano address"});
+    }
+  }
 
 
   const amountTo = await getPairRate(`${from}/${to}`, amountNumber);
