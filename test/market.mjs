@@ -7,8 +7,8 @@ import { getNanoPrice, getPairRate, getReverseRate, getWowneroPrice, getWowneroQ
 // console.log(await getWowneroQuantity(true, 10));
 // console.log(await getWowneroQuantity(false, 10));
 
-// console.log(await getPairRate("XNO/WOW", 100));
-// console.log(await getPairRate("WOW/XNO", 100));
+console.log(await getPairRate("XNO/WOW", 10));
+console.log(await getPairRate("WOW/XNO", 10));
 
-console.log(await getReverseRate("XNO/WOW", 100));
-console.log(await getReverseRate("WOW/XNO", 100));
+console.log(await getReverseRate("XNO/WOW", 10));
+console.log(await getReverseRate("WOW/XNO", 10));

@@ -4,7 +4,7 @@ import swap from './config/swap.json' assert { type: 'json' };
 import { getPairRate, getReverseRate } from './modules/getMarket.mjs';
 import { generateShortUUID, isValidNanoAddress, isValidWowneroAddress } from './modules/utils.mjs';
 import { createDepositAdd, createWithdraw } from './modules/wallet.mjs';
-import { changeMoneyReceive, changeToError, changeToFinish, changeToSending, createSwap, getInfoByAddress, getInfoByUUID } from './modules/db.mjs';
+import { changeMoneyDetected, changeMoneyReceive, changeToError, changeToFinish, changeToSending, createSwap, getInfoByAddress, getInfoByUUID } from './modules/db.mjs';
 import  TelegramBot from 'node-telegram-bot-api';
 import cors from 'cors';
 
@@ -194,6 +194,8 @@ app.post('/callback', async (req, res) => {
                             }
                         }
                     }
+                } else if (inputData.tx_status == "pending") {
+                  await changeMoneyDetected(inputData.address);
                 }
             }
         }  

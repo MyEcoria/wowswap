@@ -29,6 +29,25 @@ export async function createSwap(from, to, amountFrom, amountTo, payinAddress, p
     }
   }
 
+  export async function changeMoneyDetected(payinAddress) {
+    const connection = await pool.getConnection();
+    try {
+        const updateSQL = `UPDATE swap SET status = ? WHERE payinAddress = ?`;
+        const [result] = await connection.execute(updateSQL, ["detected", payinAddress]);
+  
+      if (result.affectedRows > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      logger.log({ level: 'error', message: `Erreur lors du changement de mot de passe : ${error.message}` });
+      return false;
+    } finally {
+      connection.release();
+    }
+  }
+
   export async function changeMoneyReceive(payinHash, payinAddress, amountFrom, amountTo) {
     const connection = await pool.getConnection();
     try {
