@@ -9,7 +9,7 @@ export function generateShortUUID(length = 6) {
   }
 
 export function isValidWowneroAddress(address) {
-    const wowneroAddressRegex = /^[a-zA-Z0-9]{95}$/;
+    const wowneroAddressRegex = /^[a-zA-Z0-9]{97}$/;
     return wowneroAddressRegex.test(address);
 }
 

@@ -7,6 +7,7 @@ import { createDepositAdd, createWithdraw } from './modules/wallet.mjs';
 import { changeMoneyDetected, changeMoneyReceive, changeToError, changeToFinish, changeToSending, createSwap, getInfoByAddress, getInfoByUUID } from './modules/db.mjs';
 import  TelegramBot from 'node-telegram-bot-api';
 import cors from 'cors';
+import { getNanswapCurrency } from './modules/nanswap.mjs';
 
 // replace the value below with the Telegram token you receive from @BotFather
 const token = config["telegram_token"];
@@ -218,20 +219,7 @@ app.get('/get-order', async (req, res) => {
   });
 
   app.get('/all-currencies', async (req, res) => {
-    const data = {
-        "XNO": {
-          "ticker": "XNO",
-          "name": "Nano",
-          "image": "https://nanswap.com/logo/XNO.svg",
-          "feeless": true
-        },
-        "WOW": {
-          "ticker": "WOW",
-          "name": "Wownero",
-          "image": "https://wownero.org/img/Wownero_Logo_ico.ico",
-          "feeless": true
-        }
-    }
+    const data = await getNanswapCurrency();
 
     res.json(data);
   });

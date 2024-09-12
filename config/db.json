@@ -1,7 +1,7 @@
 {
     "host": "localhost",
-    "user": "newuser",
-    "password": "password",
+    "user": "myecoria",
+    "password": "Antoine@01.",
     "database": "wowswap",
     "port": 3306
 }
