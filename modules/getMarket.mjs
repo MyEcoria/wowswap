@@ -105,17 +105,36 @@ export async function getWowneroQuantity(achat = true, pr) {
 export async function getNanoPrice() {
     const nanswap = await axios.get("https://data.nanswap.com/nano-price-stats?toCurrency=USD");
 
-    return nanswap.data[0].midPrice
+    return nanswap.data[0].midPrice;
+}
+
+export async function getWowPrice() {
+    const nanswap = await axios.get("https://api.nonkyc.io/api/v2/ticker/WOW_USDT");
+
+    return nanswap.data.low;
 }
 
 export async function getPairRate(pair, amount) {
     const NanoPrice = await getNanoPrice();
+    const wowP = await getWowPrice();
     if (pair == "XNO/WOW") {
         const totalUSD = new Decimal(amount).mul(new Decimal(NanoPrice));
-        return await getWowneroQuantity(true, totalUSD);
+        const checkQ = await getWowneroQuantity(true, totalUSD);
+        
+        if (new Decimal(checkQ).mul(new Decimal(wowP)) > totalUSD) {
+            return new Decimal(totalUSD).dividedBy(wowP).mul(0.95);
+        } else {
+            return await getWowneroQuantity(true, totalUSD);
+        }
     } else if (pair == "WOW/XNO") {
         const totalUSD = await getWowneroPrice(false, amount);
-        return new Decimal(totalUSD).dividedBy(new Decimal(NanoPrice))
+        const totalUSD2 = new Decimal(amount).mul(new Decimal(wowP));
+        const checkQ = new Decimal(totalUSD).dividedBy(new Decimal(NanoPrice));
+        if (new Decimal(checkQ).mul(new Decimal(NanoPrice)) > new Decimal(amount).mul(new Decimal(wowP))) {
+            return new Decimal(totalUSD).dividedBy(NanoPrice).mul(0.95);
+        } else {
+            return new Decimal(totalUSD2).dividedBy(new Decimal(NanoPrice)).mul(0.95);
+        }
     } else {
         return false;
     }

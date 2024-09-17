@@ -151,3 +151,19 @@ export async function createSwap(from, to, amountFrom, amountTo, payinAddress, p
       connection.release();
     }
   }
+
+  export async function createPartner(transac_id, fromC, toC, our_id, extraId, payinAddress, payoutAddress, expectedAmountFrom, expectedAmountTo) {
+    const connection = await pool.getConnection();
+    try {
+
+      const sql = 'INSERT INTO partner (transac_id, fromC, toC, our_id, extraId, payinAddress, payoutAddress, expectedAmountFrom, expectedAmountTo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      const [result] = await connection.execute(sql, [transac_id, fromC, toC, our_id, extraId, payinAddress, payoutAddress, expectedAmountFrom, expectedAmountTo]);
+      logger.log({ level: 'info', message: `L'adresse ${transac_id} vient d'être enregistrée` });
+      return true;
+    } catch (error) {
+      logger.log({ level: 'error', message: `Création de compte : ${error.message}` });
+      return false;
+    } finally {
+      connection.release();
+    }
+  }

@@ -77,3 +77,18 @@ export async function createOrder(from, to, amount, toAddress) {
       throw error;
     }
 }
+
+export async function getLimits(from, to) {
+  try {
+    // Récupérer les tokens existants depuis l'API Nanswap
+    const response = await axios.get(`https://api.nanswap.com/v1/get-limits?from=${from}&to=${to}`);
+    const tokens = response.data;
+
+    return tokens;
+    
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des tokens:", error);
+    throw error;
+  }
+}

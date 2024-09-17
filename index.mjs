@@ -4,10 +4,11 @@ import swap from './config/swap.json' assert { type: 'json' };
 import { getPairRate, getReverseRate } from './modules/getMarket.mjs';
 import { generateShortUUID, isValidNanoAddress, isValidWowneroAddress } from './modules/utils.mjs';
 import { createDepositAdd, createWithdraw } from './modules/wallet.mjs';
-import { changeMoneyDetected, changeMoneyReceive, changeToError, changeToFinish, changeToSending, createSwap, getInfoByAddress, getInfoByUUID } from './modules/db.mjs';
+import { changeMoneyDetected, changeMoneyReceive, changeToError, changeToFinish, changeToSending, createPartner, createSwap, getInfoByAddress, getInfoByUUID } from './modules/db.mjs';
 import  TelegramBot from 'node-telegram-bot-api';
 import cors from 'cors';
-import { getNanswapCurrency } from './modules/nanswap.mjs';
+import { createOrder, getEstimate, getLimits, getNanswapCurrency } from './modules/nanswap.mjs';
+import Decimal from 'decimal.js';
 
 // replace the value below with the Telegram token you receive from @BotFather
 const token = config["telegram_token"];
@@ -49,9 +50,34 @@ app.get('/get-estimate', async (req, res) => {
         return res.status(400).send('Le paramètre "amount" doit être un nombre.');
     }
 
-    const toAmount = Number(await getPairRate(`${from}/${to}`, amountNumber));
+    let est;
+    if ((from == "WOW" && to == "XNO") || (from == "XNO" && to == "WOW")) {
+      est = Number(await getPairRate(`${from}/${to}`, amountNumber));
+    } else {
+      if (from !== "WOW") {
+        if (to !== "WOW") {
+          console.log("1");
+          est = (await getEstimate(from, to, amountNumber)).amountTo;
+        } else {
+          console.log("2");
+          const esto = await getEstimate(from, "XNO", amountNumber);
+          est = Number(await getPairRate(`XNO/${to}`, esto.amountTo));
+        }
+      } else {
+        if (to !== "XNO") {
+          console.log("3");
+          const esto = Number(await getPairRate(`WOW/XNO`, amountNumber));
+          est = (await getEstimate("XNO", to, esto)).amountTo;
+        } else {
+          console.log("4");
+          est = Number(await getPairRate(`WOW/XNO`, amountNumber));
+        }
+      }
+    }
+
+    // const toAmount = Number(await getPairRate(`${from}/${to}`, amountNumber));
     // Envoyer la réponse
-    res.json({ from: from, to: to, amountFrom: amountNumber, amountTo: toAmount });
+    res.json({ from: from, to: to, amountFrom: amountNumber, amountTo: est });
   });
 
 app.get('/get-estimate-reverse', async (req, res) => {
@@ -86,25 +112,57 @@ app.get('/get-limits', async (req, res) => {
       return res.status(400).send('Les paramètres "from", "to" et "amount" sont requis.');
     }
 
-    if (from !== "XNO" && from !== "WOW") {
-        return res.json({status: "error", message: "Invalid from ticket"});
+    if (to !== "WOW" && from !== "WOW" && to !== "XNO") {
+      console.log("1");
+      const limits = await getLimits(from, to);
+      return res.json({ from: from, to: to, min: limits.min, max: limits.max });
     }
 
-    if (to !== "XNO" && to !== "WOW") {
-        return res.json({status: "error", message: "Invalid to ticket"});
+    if ((from == "XNO" && to == "WOW") || (from == "WOW" && to == "XNO")) {
+      console.log("2");
+      if (to == "WOW") {
+        const minEs = await getPairRate("WOW/XNO", new Decimal(swap[`minWOW`]).plus(new Decimal(5)));
+        return res.json({ from: from, to: to, min: Number(minEs), max: swap[`max${from}`] }); 
+      } else {
+        return res.json({ from: from, to: to, min: swap[`min${from}`], max: swap[`max${from}`] });
+      }
+    }
+
+    if (from == "WOW" && (to !== "XNO" || to !== "WOW")) {
+      console.log("3");
+      const limits = await getLimits("XNO", to);
+      const minEs = await getPairRate("XNO/WOW", limits.min)
+      
+      return res.json({ from: from, to: to, min: Number(minEs), max: swap[`max${from}`] });
+    }
+
+    if ((from !== "XNO" || from !== "WOW") && (to == "XNO" || to == "WOW")) {
+      console.log("4");
+      const estim = await getEstimate("XNO", from, swap[`maxXNO`]);
+      const limits = await getLimits(from, "XNO");
+
+      let mino;
+
+      if (to == "WOW") {
+        const lmt = await getPairRate("WOW/XNO", new Decimal(swap[`minWOW`]).plus(new Decimal(1)));
+        const est = await getEstimate("XNO", from, lmt);
+        
+        mino = est.expectedAmountTo;
+      } else {
+        mino = limits.min;
+      }
+
+      res.json({ from: from, to: to, min: mino, max: estim.amountTo });
     }
 
     if (from == to) {
         return res.json({status: "error", message: "Invalid to ticket"});
     }
-
-    res.json({ from: from, to: to, min: swap[`min${from}`], max: swap[`max${from}`] });
   });
 
 // Route pour créer un nouvel élément
 app.post('/create-order', async (req, res) => {
   const body = req.body;
-  
   const from = body.from;
   const to = body.to;
   const amount = body.amount;
@@ -114,43 +172,79 @@ app.post('/create-order', async (req, res) => {
     return res.status(400).send('Les paramètres "from", "to" et "amount" sont requis.');
   }
 
-  if (from !== "XNO" && from !== "WOW") {
-      return res.json({status: "error", message: "Invalid from ticket"});
-  }
-
-  if (to !== "XNO" && to !== "WOW") {
-      return res.json({status: "error", message: "Invalid to ticket"});
-  }
-
-  if (from == to) {
-      return res.json({status: "error", message: "Invalid to ticket"});
-  }
-
-  const amountNumber = Number(amount);
+  if (from == "WOW" && to !== "XNO") {
+    const amountNumber = Number(amount);
     if (isNaN(amountNumber)) {
         return res.status(400).send('Le paramètre "amount" doit être un nombre.');
     }
 
-  if (to == "WOW") {
-    if (!isValidWowneroAddress(toAddress)) {
-      return res.json({status: "error", message: "Invalid wownero address"});
+    const estimate = await getPairRate("WOW/XNO", amountNumber);
+    const order = await createOrder("XNO", to, estimate, toAddress);
+    const uuid = generateShortUUID();
+    const deposit = await createDepositAdd(from);
+    await createSwap(from, "XNO", amountNumber, estimate, deposit, order.payinAddress, "nop", "nop", uuid);
+    let extraId;
+    if (order.payinExtraId) {
+      extraId = order.payinExtraId;
+    } else {
+      extraId = null;
     }
-  } else {
-    if (!isValidNanoAddress(toAddress)) {
-      return res.json({status: "error", message: "Invalid nano address"});
-    }
+    await createPartner(order.id, order.from, order.to, uuid, extraId, order.payinAddress, order.payoutAddress, order.expectedAmountFrom, order.expectedAmountTo);
+    res.json({id: uuid, from: from, to: to, expectedAmountFrom: amountNumber, expectedAmountTo: order.expectedAmountTo, payinAddress: deposit, payoutAddress: order.payoutAddress});
   }
 
+  if (from !== "XNO" && to == "WOW") {
+    const amountNumber = Number(amount);
+    if (isNaN(amountNumber)) {
+        return res.status(400).send('Le paramètre "amount" doit être un nombre.');
+    }
 
-  const amountTo = await getPairRate(`${from}/${to}`, amountNumber);
+    const uuid = generateShortUUID();
+    const deposit = await createDepositAdd("XNO");
 
-  const uuid = generateShortUUID();
+    const order = await createOrder(from, "XNO", amountNumber, deposit);
+    const estimate = await getPairRate("XNO/WOW", order.expectedAmountTo);
 
-  const deposit = await createDepositAdd(from);
+    let extraId;
+    if (order.payinExtraId) {
+      extraId = order.payinExtraId;
+    } else {
+      extraId = null;
+    }
 
-  await createSwap(from, to, amountNumber, amountTo, deposit, toAddress, "nop", "nop", uuid);
+    await createPartner(order.id, order.from, order.to, uuid, extraId, order.payinAddress, order.payoutAddress, order.expectedAmountFrom, order.expectedAmountTo);
+    await createSwap("XNO", "WOW", order.expectedAmountTo, estimate, deposit, toAddress, "nop", "nop", uuid);
+    
+    res.json({id: uuid, from: from, to: to, expectedAmountFrom: amountNumber, expectedAmountTo: estimate, payinAddress: order.payinAddress, payoutAddress: toAddress});
+  }
 
-  res.json({id: uuid, from: from, to: to, expectedAmountFrom: amountNumber, expectedAmountTo: Number(amountTo), payinAddress: deposit, payoutAddress: toAddress});
+  if ((from == "XNO" || from == "WOW") && (to == "XNO" || to == "WOW")) {
+    const amountNumber = Number(amount);
+      if (isNaN(amountNumber)) {
+          return res.status(400).send('Le paramètre "amount" doit être un nombre.');
+      }
+
+    if (to == "WOW") {
+      if (!isValidWowneroAddress(toAddress)) {
+        return res.json({status: "error", message: "Invalid wownero address"});
+      }
+    } else {
+      if (!isValidNanoAddress(toAddress)) {
+        return res.json({status: "error", message: "Invalid nano address"});
+      }
+    }
+
+
+    const amountTo = await getPairRate(`${from}/${to}`, amountNumber);
+
+    const uuid = generateShortUUID();
+
+    const deposit = await createDepositAdd(from);
+
+    await createSwap(from, to, amountNumber, amountTo, deposit, toAddress, "nop", "nop", uuid);
+
+    res.json({id: uuid, from: from, to: to, expectedAmountFrom: amountNumber, expectedAmountTo: Number(amountTo), payinAddress: deposit, payoutAddress: toAddress});
+  }
 });
 
 app.post('/callback', async (req, res) => {
