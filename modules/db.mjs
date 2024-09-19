@@ -167,3 +167,17 @@ export async function createSwap(from, to, amountFrom, amountTo, payinAddress, p
       connection.release();
     }
   }
+
+  export async function getInfoPartnerByUUID(uuid) {
+    const connection = await pool.getConnection();
+    try {
+      const sql = 'SELECT * FROM partner WHERE transac_id = ?';
+      const [rows] = await connection.execute(sql, [uuid]);
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      logger.log({ level: 'error', message: `Erreur lors de la récupération des informations par email : ${error.message}` });
+      return null;
+    } finally {
+      connection.release();
+    }
+  }
