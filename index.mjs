@@ -164,6 +164,7 @@ app.post('/create-order', async (req, res) => {
       await createPartner(order.id, order.from, order.to, null, extraId, order.payinAddress, order.payoutAddress, order.expectedAmountFrom, order.expectedAmountTo);
       return res.json({
         id: order.id,
+        partnerId: order.id,
         from,
         to,
         expectedAmountFrom: order.expectedAmountFrom,
