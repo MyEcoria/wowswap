@@ -1,3 +1,4 @@
+// Importations des modules nécessaires
 import express from 'express';
 import config from './config/general.json' assert { type: 'json' };
 import swap from './config/swap.json' assert { type: 'json' };
@@ -10,42 +11,52 @@ import cors from 'cors';
 import { createOrder, getEstimate, getLimits, getLimitsTest, getNanswapCurrency, getOrder } from './modules/nanswap.mjs';
 import Decimal from 'decimal.js';
 
-// replace the value below with the Telegram token you receive from @BotFather
+// Configuration initiale
 const token = config["telegram_token"];
-
-// Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, {polling: true});
-
 bot.sendMessage(config["telegram_chat"], "Le code démarre !!");
 
 const app = express();
 const port = config["port"];
 
-// Middleware pour parser le corps des requêtes en JSON
+// Middleware
 app.use(express.json());
-
 const toCors = { origin: "http://localhost:3000" }
 app.use(cors(toCors));
 
-// Route principale qui répond avec "Hello World!"
+// Routes principales
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-// Route pour traiter la requête GET avec des arguments
+// Routes pour les estimations
 app.get('/get-estimate', async (req, res) => {
   try {
     const { from, to, amount } = req.query;
 
+    // Vérification de la présence des paramètres requis
     if (!from || !to || !amount) {
       return res.status(400).json({ status: 'error', message: 'Les paramètres "from", "to" et "amount" sont requis.' });
     }
 
+    // Vérification que 'from' et 'to' sont des chaînes de caractères valides
+    if (typeof from !== 'string' || typeof to !== 'string') {
+      return res.status(400).json({ status: 'error', message: 'Les paramètres "from" et "to" doivent être des chaînes de caractères.' });
+    }
+
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
+    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
+      return res.status(400).json({ status: 'error', message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.' });
+    }
+
+    // Vérification que 'amount' est un nombre valide
     const amountNumber = Number(amount);
     if (isNaN(amountNumber)) {
       return res.status(400).json({ status: 'error', message: 'Le paramètre "amount" doit être un nombre.' });
     }
 
+    // Le reste du code reste inchangé
     let est;
     if ((from === "WOW" && to === "XNO") || (from === "XNO" && to === "WOW")) {
       est = Number(await getPairRate(`${from}/${to}`, amountNumber));
@@ -76,29 +87,48 @@ app.get('/get-estimate-reverse', async (req, res) => {
   try {
     const { from, to, amount } = req.query;
 
+    // Vérification de la présence des paramètres requis
     if (!from || !to || !amount) {
-      return res.status(400).json({ 
-        status: 'error', 
-        message: 'Les paramètres "from", "to" et "amount" sont requis.' 
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from", "to" et "amount" sont requis.'
       });
     }
 
+    // Vérification que 'from' et 'to' sont des chaînes de caractères valides
+    if (typeof from !== 'string' || typeof to !== 'string') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from" et "to" doivent être des chaînes de caractères.'
+      });
+    }
+
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
+    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.'
+      });
+    }
+
+    // Vérification que 'amount' est un nombre valide
     const amountNumber = Number(amount);
     if (isNaN(amountNumber)) {
-      return res.status(400).json({ 
-        status: 'error', 
-        message: 'Le paramètre "amount" doit être un nombre.' 
+      return res.status(400).json({
+        status: 'error',
+        message: 'Le paramètre "amount" doit être un nombre.'
       });
     }
 
     const toAmount = Number(await getReverseRate(`${from}/${to}`, amountNumber));
-
-    res.json({ 
+    
+    res.json({
       status: 'success',
-      from, 
-      to, 
-      amountFrom: toAmount, 
-      amountTo: amountNumber 
+      from,
+      to,
+      amountFrom: toAmount,
+      amountTo: amountNumber
     });
   } catch (error) {
     console.error('Erreur dans /get-estimate-reverse:', error);
@@ -106,10 +136,12 @@ app.get('/get-estimate-reverse', async (req, res) => {
   }
 });
 
+// Route pour obtenir les limites
 app.get('/get-limits', async (req, res) => {
   try {
     const { from, to } = req.query;
 
+    // Vérification de la présence des paramètres requis
     if (!from || !to) {
       return res.status(400).json({
         status: 'error',
@@ -117,26 +149,76 @@ app.get('/get-limits', async (req, res) => {
       });
     }
 
-    if (from === to) {
-      return res.json({ status: "error", message: "Les devises 'from' et 'to' ne peuvent pas être identiques." });
+    // Vérification que 'from' et 'to' sont des chaînes de caractères valides
+    if (typeof from !== 'string' || typeof to !== 'string') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from" et "to" doivent être des chaînes de caractères.'
+      });
+    }
+
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
+    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.'
+      });
+    }
+
+    // Vérification que 'from' et 'to' ne sont pas identiques
+    if (from.toUpperCase() === to.toUpperCase()) {
+      return res.json({ 
+        status: "error", 
+        message: "Les devises 'from' et 'to' ne peuvent pas être identiques." 
+      });
     }
 
     const limits = await getLimitsTest(from.toUpperCase(), to.toUpperCase());
     res.json(limits);
-
   } catch (error) {
     console.error('Erreur dans /get-limits:', error);
     res.json({ status: "error" });
   }
 });
 
-// Route pour créer un nouvel élément
+// Route pour créer une commande
 app.post('/create-order', async (req, res) => {
   try {
     const { from, to, amount, toAddress } = req.body;
 
+    // Vérification de la présence des paramètres requis
     if (!from || !to || !amount) {
-      return res.json({ status: "error", message: 'Les paramètres "from", "to" et "amount" sont requis.' });
+      return res.status(400).json({ 
+        status: "error", 
+        message: 'Les paramètres "from", "to" et "amount" sont requis.' 
+      });
+    }
+
+    // Vérification que 'from', 'to' et 'toAddress' sont des chaînes de caractères valides
+    if (typeof from !== 'string' || typeof to !== 'string' || (toAddress && typeof toAddress !== 'string')) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from", "to" et "toAddress" (si fourni) doivent être des chaînes de caractères.'
+      });
+    }
+
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
+    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.'
+      });
+    }
+
+    // Vérification de 'toAddress' si fourni (vous pouvez ajuster cette regex selon vos besoins spécifiques)
+    const addressRegex = /^[a-zA-Z0-9-_]+$/;
+    if (toAddress && !addressRegex.test(toAddress)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Le paramètre "toAddress" contient des caractères non autorisés.'
+      });
     }
 
     const amountNumber = Number(amount);
@@ -250,6 +332,7 @@ app.post('/create-order', async (req, res) => {
   }
 });
 
+// Route pour le callback
 app.post('/callback', async (req, res) => {
     const inputData = req.body;
     const headers = req.headers;
@@ -301,9 +384,34 @@ app.post('/callback', async (req, res) => {
     res.json({status: "ok"})
   });
 
+// Routes pour obtenir les informations sur les commandes
 app.get('/get-order', async (req, res) => {
-    // Récupérer les arguments de la requête
-    const id = req.query.id;
+  const { id } = req.query;
+
+  // Vérification que l'id est fourni
+  if (!id) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Le paramètre "id" est requis.'
+    });
+  }
+
+  // Vérification que l'id est une chaîne de caractères
+  if (typeof id !== 'string') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Le paramètre "id" doit être une chaîne de caractères.'
+    });
+  }
+
+  // Vérification que l'id correspond au format UUID
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Le paramètre "id" doit être un UUID valide.'
+    });
+  }
     
     const data = await getInfoByUUID(id);
     console.log(data);
@@ -316,8 +424,32 @@ app.get('/get-order', async (req, res) => {
   });
 
 app.get('/get-order-all', async (req, res) => {
-    // Récupérer les arguments de la requête
-    const id = req.query.id;
+  const { id } = req.query;
+
+  // Vérification que l'id est fourni
+  if (!id) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Le paramètre "id" est requis.'
+    });
+  }
+
+  // Vérification que l'id est une chaîne de caractères
+  if (typeof id !== 'string') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Le paramètre "id" doit être une chaîne de caractères.'
+    });
+  }
+
+  // Vérification que l'id correspond au format UUID
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Le paramètre "id" doit être un UUID valide.'
+    });
+  }
     const partnerOrder = await getOrder(id);
     const partnerData = await getInfoPartnerByUUID(id);
 
@@ -382,7 +514,7 @@ app.get('/all-currencies', async (req, res) => {
     res.json(data);
   });
 
-// Démarrer le serveur
+// Démarrage du serveur
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
 });
