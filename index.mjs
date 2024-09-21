@@ -21,7 +21,7 @@ const port = config["port"];
 
 // Middleware
 app.use(express.json());
-const toCors = { origin: "http://localhost:3000" }
+const toCors = { origin: '*' }
 app.use(cors(toCors));
 
 // Routes principales
@@ -405,13 +405,13 @@ app.get('/get-order', async (req, res) => {
   }
 
   // Vérification que l'id correspond au format UUID
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(id)) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Le paramètre "id" doit être un UUID valide.'
-    });
-  }
+   const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(id)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "id" ne doivent contenir que des caractères alphanumériques.'
+      });
+    }
     
     const data = await getInfoByUUID(id);
     console.log(data);
@@ -443,13 +443,14 @@ app.get('/get-order-all', async (req, res) => {
   }
 
   // Vérification que l'id correspond au format UUID
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(id)) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Le paramètre "id" doit être un UUID valide.'
-    });
-  }
+  const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(id)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les paramètres "id" ne doivent contenir que des caractères alphanumériques.'
+      });
+    }
+
     const partnerOrder = await getOrder(id);
     const partnerData = await getInfoPartnerByUUID(id);
 
