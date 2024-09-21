@@ -480,7 +480,7 @@ app.get('/get-order-all', async (req, res) => {
             bot.sendMessage(config["telegram_chat"], `New partner error on ${id}, our ID: ${partnerData.our_id}`);
           }
 
-          res.json({ id: id, fromAmount: Number(ourData.amountFrom), toAmount: Number(partnerOrder.expectedAmountTo), status: status, from: ourData.fromd, to: partnerData.toC, payinAddress: ourData.payinAddress, payoutAddress: partnerData.payoutAddress, payinHash: ourData.payinHash, payoutHash: partnerOrder.payoutHash });
+          res.json({ id: id, fromAmount: Number(ourData.amountFrom), toAmount: Number(partnerOrder.expectedAmountTo), status: status, from: ourData.fromd, to: partnerData.toC, payinAddress: ourData.payinAddress, payoutAddress: partnerData.payoutAddress, payinHash: ourData.payinHash, payoutHash: partnerOrder.payoutHash, extraId: partnerOrder.payinExtraId ? partnerOrder.payinExtraId : null });
         } else {
           let status;
 
@@ -499,10 +499,10 @@ app.get('/get-order-all', async (req, res) => {
             status = "completed";
           } 
 
-          res.json({ id: id, fromAmount: Number(partnerOrder.amountFrom ? partnerOrder.amountFrom : partnerOrder.expectedAmountFrom), toAmount: Number(ourData.amountTo), status: status, from: partnerData.fromC, to: ourData.tod, payinAddress: partnerData.payinAddress, payoutAddress: ourData.payoutAddress, payinHash: partnerOrder.payinHash, payoutHash: ourData.payoutHash });
+          res.json({ id: id, fromAmount: Number(partnerOrder.amountFrom ? partnerOrder.amountFrom : partnerOrder.expectedAmountFrom), toAmount: Number(ourData.amountTo), status: status, from: partnerData.fromC, to: ourData.tod, payinAddress: partnerData.payinAddress, payoutAddress: ourData.payoutAddress, payinHash: partnerOrder.payinHash, payoutHash: ourData.payoutHash, extraId: partnerOrder.payinExtraId ? partnerOrder.payinExtraId : null });
         }
       } else {
-        res.json({ id: id, fromAmount: Number(partnerOrder.amountFrom ? partnerOrder.amountFrom : partnerOrder.expectedAmountFrom), toAmount: Number(partnerOrder.amountTo ? partnerOrder.amountTo : partnerOrder.expectedAmountTo), status: partnerOrder.status, from: partnerOrder.from, to: partnerOrder.to, payinAddress: partnerOrder.payinAddress, payoutAddress: partnerOrder.payoutAddress, payinHash: partnerOrder.payinHash, payoutHash: partnerOrder.payoutHash });
+        res.json({ id: id, fromAmount: Number(partnerOrder.amountFrom ? partnerOrder.amountFrom : partnerOrder.expectedAmountFrom), toAmount: Number(partnerOrder.amountTo ? partnerOrder.amountTo : partnerOrder.expectedAmountTo), status: partnerOrder.status, from: partnerOrder.from, to: partnerOrder.to, payinAddress: partnerOrder.payinAddress, payoutAddress: partnerOrder.payoutAddress, payinHash: partnerOrder.payinHash, payoutHash: partnerOrder.payoutHash, extraId: partnerOrder.payinExtraId ? partnerOrder.payinExtraId : null });
       }
     } else {
         res.json({error: "Transaction doesn't exist"});
