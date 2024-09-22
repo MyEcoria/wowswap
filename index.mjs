@@ -44,10 +44,10 @@ app.get('/get-estimate', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Les paramètres "from" et "to" doivent être des chaînes de caractères.' });
     }
 
-    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
-    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques et le tiret
+    const alphanumericRegex = /^[a-zA-Z0-9-]+$/;
     if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
-      return res.status(400).json({ status: 'error', message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.' });
+      return res.status(400).json({ status: 'error', message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques et le tiret.' });
     }
 
     // Vérification que 'amount' est un nombre valide
@@ -103,12 +103,12 @@ app.get('/get-estimate-reverse', async (req, res) => {
       });
     }
 
-    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
-    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques et le tiret
+    const alphanumericRegex = /^[a-zA-Z0-9-]+$/;
     if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
       return res.status(400).json({
         status: 'error',
-        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.'
+        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques et le tiret.'
       });
     }
 
@@ -157,12 +157,12 @@ app.get('/get-limits', async (req, res) => {
       });
     }
 
-    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
-    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques et le tiret
+    const alphanumericRegex = /^[a-zA-Z0-9-]+$/;
     if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
       return res.status(400).json({
         status: 'error',
-        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.'
+        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques et le tiret.'
       });
     }
 
@@ -203,12 +203,12 @@ app.post('/create-order', async (req, res) => {
       });
     }
 
-    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques
-    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    // Vérification supplémentaire pour s'assurer que 'from' et 'to' ne contiennent que des caractères alphanumériques et le tiret
+    const alphanumericRegex = /^[a-zA-Z0-9-]+$/;
     if (!alphanumericRegex.test(from) || !alphanumericRegex.test(to)) {
       return res.status(400).json({
         status: 'error',
-        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques.'
+        message: 'Les paramètres "from" et "to" ne doivent contenir que des caractères alphanumériques et le tiret.'
       });
     }
 
@@ -405,11 +405,11 @@ app.get('/get-order', async (req, res) => {
   }
 
   // Vérification que l'id correspond au format UUID
-   const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+   const alphanumericRegex = /^[a-zA-Z0-9-]+$/;
     if (!alphanumericRegex.test(id)) {
       return res.status(400).json({
         status: 'error',
-        message: 'Les paramètres "id" ne doivent contenir que des caractères alphanumériques.'
+        message: 'Les paramètres "id" ne doivent contenir que des caractères alphanumériques et le tiret.'
       });
     }
     
@@ -443,11 +443,11 @@ app.get('/get-order-all', async (req, res) => {
   }
 
   // Vérification que l'id correspond au format UUID
-  const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+  const alphanumericRegex = /^[a-zA-Z0-9-]+$/;
     if (!alphanumericRegex.test(id)) {
       return res.status(400).json({
         status: 'error',
-        message: 'Les paramètres "id" ne doivent contenir que des caractères alphanumériques.'
+        message: 'Les paramètres "id" ne doivent contenir que des caractères alphanumériques et le tiret.'
       });
     }
 
