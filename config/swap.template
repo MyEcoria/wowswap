@@ -1,0 +1,6 @@
+{
+    "minXNO": 0.01,
+    "maxXNO": 100,
+    "minWOW": 1,
+    "maxWOW": 1000
+}

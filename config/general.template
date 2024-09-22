@@ -1,0 +1,10 @@
+{
+    "port": 3001,
+    "nanpay": "",
+    "wallet": "https://secret.cc",
+    "nanauth": "",
+    "marge": 0.95,
+    "telegram_token": "",
+    "telegram_chat": 123,
+    "nanswap": ""
+}
