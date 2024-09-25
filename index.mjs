@@ -237,6 +237,13 @@ app.post('/create-order', async (req, res) => {
       return res.json({ status: "error", message: 'Le montant doit être inférieur au montant maximum' });
     }
 
+    if (from == to) {
+      return res.json({
+        status: "error",
+        message: "from == to"
+      });
+    }
+
     if (from !== "WOW" && to !== "WOW") {
       const order = await createOrder(from, to, amountNumber, toAddress);
       if (order.error) {
@@ -282,6 +289,9 @@ app.post('/create-order', async (req, res) => {
     }
 
     if (from !== "XNO" && to === "WOW") {
+      if (to === "WOW" && !isValidWowneroAddress(toAddress)) {
+        return res.json({ status: "error", message: "Adresse Wownero invalide" });
+      }
       const uuid = generateShortUUID();
       const deposit = await createDepositAdd("XNO");
       const order = await createOrder(from, "XNO", amountNumber, deposit);
