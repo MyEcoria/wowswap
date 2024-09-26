@@ -170,7 +170,7 @@ app.get('/get-limits', async (req, res) => {
     if (from.toUpperCase() === to.toUpperCase()) {
       return res.json({ 
         status: "error", 
-        message: "Les devises 'from' et 'to' ne peuvent pas être identiques." 
+        message: "The 'from' and 'to' currencies must be different" 
       });
     }
 
@@ -178,7 +178,7 @@ app.get('/get-limits', async (req, res) => {
     res.json(limits);
   } catch (error) {
     console.error('Erreur dans /get-limits:', error);
-    res.json({ status: "error" });
+    res.json({ status: "error", message: "Unknow error" });
   }
 });
 
@@ -191,7 +191,7 @@ app.post('/create-order', async (req, res) => {
     if (!from || !to || !amount) {
       return res.status(400).json({ 
         status: "error", 
-        message: 'Les paramètres "from", "to" et "amount" sont requis.' 
+        message: 'From,to, and amount are required' 
       });
     }
 
@@ -224,17 +224,17 @@ app.post('/create-order', async (req, res) => {
     const amountNumber = Number(amount);
     console.log(amountNumber);
     if (isNaN(amountNumber)) {
-      return res.json({ status: "error", message: 'Le paramètre "amount" doit être un nombre.' });
+      return res.json({ status: "error", message: 'The amount must be a number' });
     }
 
     const limitsTest = await getLimitsTest(from.toUpperCase(), to.toUpperCase());
     console.log(limitsTest);
     if (Number(limitsTest.min) > amountNumber) {
-      return res.json({ status: "error", message: 'Le montant doit être supérieur au montant minimum' });
+      return res.json({ status: "error", message: 'The amount must exceed the minimum' });
     }
 
     if (Number(limitsTest.max) < amountNumber) {
-      return res.json({ status: "error", message: 'Le montant doit être inférieur au montant maximum' });
+      return res.json({ status: "error", message: 'The amount must be below the maximum' });
     }
 
     if (from == to) {
@@ -290,7 +290,7 @@ app.post('/create-order', async (req, res) => {
 
     if (from !== "XNO" && to === "WOW") {
       if (to === "WOW" && !isValidWowneroAddress(toAddress)) {
-        return res.json({ status: "error", message: "Adresse Wownero invalide" });
+        return res.json({ status: "error", message: "Invalid Wownero address" });
       }
       const uuid = generateShortUUID();
       const deposit = await createDepositAdd("XNO");
@@ -314,10 +314,10 @@ app.post('/create-order', async (req, res) => {
 
     if ((from === "XNO" || from === "WOW") && (to === "XNO" || to === "WOW")) {
       if (to === "WOW" && !isValidWowneroAddress(toAddress)) {
-        return res.json({ status: "error", message: "Adresse Wownero invalide" });
+        return res.json({ status: "error", message: "Invalid Wownero address" });
       }
       if (to === "XNO" && !isValidNanoAddress(toAddress)) {
-        return res.json({ status: "error", message: "Adresse Nano invalide" });
+        return res.json({ status: "error", message: "Invalid Nano address" });
       }
 
       const amountTo = await getPairRate(`${from}/${to}`, amountNumber);
@@ -335,10 +335,10 @@ app.post('/create-order', async (req, res) => {
       });
     }
 
-    return res.json({ status: "error", message: "Combinaison de devises non prise en charge" });
+    return res.json({ status: "error", message: "Unsupported currency pair" });
   } catch (error) {
     console.error('Erreur dans /create-order:', error);
-    return res.json({ status: "error" });
+    return res.json({ status: "error", message: "Unknown error" });
   }
 });
 
@@ -507,7 +507,9 @@ app.get('/get-order-all', async (req, res) => {
             status = "sending";
           } else if (ourData.status == "completed") {
             status = "completed";
-          } 
+          } else if (ourData.status == "error") {
+            status = "error";
+          }
 
           res.json({ id: id, fromAmount: Number(partnerOrder.amountFrom ? partnerOrder.amountFrom : partnerOrder.expectedAmountFrom), toAmount: Number(ourData.amountTo), status: status, from: partnerData.fromC, to: ourData.tod, payinAddress: partnerData.payinAddress, payoutAddress: ourData.payoutAddress, payinHash: partnerOrder.payinHash, payoutHash: ourData.payoutHash, extraId: partnerOrder.payinExtraId ? partnerOrder.payinExtraId : null });
         }
