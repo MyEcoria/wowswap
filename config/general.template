@@ -3,6 +3,7 @@
     "nanpay": "",
     "wallet": "https://secret.cc",
     "nanauth": "",
+    "nanpriv": "",
     "marge": 0.95,
     "telegram_token": "",
     "telegram_chat": 123,

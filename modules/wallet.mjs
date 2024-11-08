@@ -1,25 +1,25 @@
 import axios from 'axios';
 import config from '../config/general.json' assert { type: 'json' };
+import crypto from 'crypto';
 import { logger } from './logger.mjs';
 
 export async function createDepositAdd(ticket) {
     return new Promise(async (resolve, reject) => {
         try {
-            console.log(ticket);
             const jsonData = {
-                currency: ticket
+                currency: ticket,
+                time: Date.now()
             };
+
+            const withdrawalRequestBody = JSON.stringify(jsonData);
+            const withdrawalRequestSign = crypto.createHmac('sha256', config["nanpriv"]).update(withdrawalRequestBody).digest('base64');
             
-            // En-tête JSON de la requête
             const headers = {
                 'Content-Type': 'application/json',
-                'auth': config["nanpay"]
+                'auth': config["nanpay"],
+                'sign': withdrawalRequestSign
             };
-            
-            // URL de l'API cible
             const apiUrl = config["wallet"];
-            
-            // Effectuer la requête POST avec await
             const response = await axios.post(`${apiUrl}/wallet/deposit`, jsonData, {
                 headers: headers
             });
@@ -32,9 +32,8 @@ export async function createDepositAdd(ticket) {
                 resolve(response.data.address);
             }
         } catch (error) {
-            // Gérez l'erreur ici (enregistrement dans le journal, renvoi d'une réponse d'erreur, etc.)
             logger.error({ level: 'error', message: `Erreur lors de la requête : ${error.message}` });
-            throw error; // Renvoie l'erreur pour que le code appelant puisse la gérer également si nécessaire
+            throw error;
         }
     });
 }
@@ -48,17 +47,16 @@ export async function createWithdraw(ticket, amount, to) {
                 amount: Number(Number(amount).toFixed(4)),
                 destination: to
             };
-            
-            // En-tête JSON de la requête
+
+            const withdrawalRequestBody = JSON.stringify(jsonData);
+            const withdrawalRequestSign = crypto.createHmac('sha256', config["nanpriv"]).update(withdrawalRequestBody).digest('base64');
+
             const headers = {
                 'Content-Type': 'application/json',
-                'auth': config["nanpay"]
+                'auth': config["nanpay"],
+                'sign': withdrawalRequestSign
             };
-            
-            // URL de l'API cible
             const apiUrl = config["wallet"];
-            
-            // Effectuer la requête POST avec await
             const response = await axios.post(`${apiUrl}/wallet/withdraw`, jsonData, {
                 headers: headers
             });
@@ -74,10 +72,9 @@ export async function createWithdraw(ticket, amount, to) {
                 }
             }
         } catch (error) {
-            // Gérez l'erreur ici (enregistrement dans le journal, renvoi d'une réponse d'erreur, etc.)
             logger.error({ level: 'error', message: `Erreur lors de la requête : ${error.message}` });
             resolve(false);
-            throw error; // Renvoie l'erreur pour que le code appelant puisse la gérer également si nécessaire
+            throw error;
         }
     });
 }
