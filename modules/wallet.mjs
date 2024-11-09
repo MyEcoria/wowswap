@@ -42,10 +42,12 @@ export async function createWithdraw(ticket, amount, to) {
     console.log(`${ticket}/${amount}/${to}`);
     return new Promise(async (resolve, reject) => {
         try {
+            const ts = Date.now();
             const jsonData = {
                 currency: ticket.toLowerCase(),
                 amount: Number(Number(amount).toFixed(4)),
-                destination: to
+                destination: to,
+                time: ts
             };
 
             const withdrawalRequestBody = JSON.stringify(jsonData);
