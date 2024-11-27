@@ -186,6 +186,7 @@ app.get('/get-limits', async (req, res) => {
 app.post('/create-order', async (req, res) => {
   try {
     const { from, to, amount, toAddress } = req.body;
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     // Vérification de la présence des paramètres requis
     if (!from || !to || !amount) {
@@ -245,7 +246,7 @@ app.post('/create-order', async (req, res) => {
     }
 
     if (from !== "WOW" && to !== "WOW") {
-      const order = await createOrder(from, to, amountNumber, toAddress);
+      const order = await createOrder(from, to, amountNumber, toAddress, ip);
       if (order.error) {
         return res.json(order);
       }
@@ -266,7 +267,7 @@ app.post('/create-order', async (req, res) => {
 
     if (from === "WOW" && to !== "XNO") {
       const estimate = await getPairRate("WOW/XNO", amountNumber);
-      const order = await createOrder("XNO", to, estimate, toAddress);
+      const order = await createOrder("XNO", to, estimate, toAddress, ip);
       console.log(order);
       if (order.error) {
         return res.json({status: "error", message: order.error})
@@ -294,7 +295,7 @@ app.post('/create-order', async (req, res) => {
       }
       const uuid = generateShortUUID();
       const deposit = await createDepositAdd("XNO");
-      const order = await createOrder(from, "XNO", amountNumber, deposit);
+      const order = await createOrder(from, "XNO", amountNumber, deposit, ip);
       const estimate = await getPairRate("XNO/WOW", order.expectedAmountTo);
       const extraId = order.payinExtraId || null;
       await createPartner(order.id, order.from, order.to, uuid, extraId, order.payinAddress, order.payoutAddress, order.expectedAmountFrom, order.expectedAmountTo);

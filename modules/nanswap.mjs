@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getPairRate } from './getMarket.mjs';
 import swap from '../config/swap.json' assert { type: 'json' };
+import general from '../config/general.json' assert { type: 'json' };
 import Decimal from 'decimal.js';
 
 
@@ -39,33 +40,41 @@ export async function getNanswapCurrency() {
 }
 
 export async function getEstimate(from, to, amount) {
-    try {
-      // Récupérer les tokens existants depuis l'API Nanswap
-      const response = await axios.get(`https://api.nanswap.com/v1/get-estimate?from=${from}&to=${to}&amount=${amount}`);
-      const tokens = response.data;
-  
-      return tokens;
-      
-  
-    } catch (error) {
-      console.error("Erreur lors de la récupération des tokens:", error);
-      throw error;
-    }
+  try {
+    // Configuration des en-têtes
+    const config = {
+      headers: {
+        'nanswap-api-key': general["nanswap"], // Remplacez par votre token réel
+        'Content-Type': 'application/json'
+      }
+    };
+
+    // Récupérer les tokens existants depuis l'API Nanswap
+    const response = await axios.get(`https://api.nanswap.com/v1/get-estimate?from=${from}&to=${to}&amount=${amount}`, config);
+    const tokens = response.data;
+
+    return tokens;
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des tokens:", error);
+    throw error;
+  }
 }
 
-export async function createOrder(from, to, amount, toAddress) {
+export async function createOrder(from, to, amount, toAddress, ip_user) {
   try {
     const data = {
       from: from,
       to: to,
       amount: amount,
-      toAddress: toAddress
+      toAddress: toAddress,
+      userDeviceId: ip_user
     };
   
     // Configuration des en-têtes
     const config = {
       headers: {
-        'nanswap-api-key': 'c23424a1-0fd9-43eb-9eb2-8072a62920aa', // Remplacez par votre token réel
+        'nanswap-api-key': general["nanswap"],
         'Content-Type': 'application/json'
       }
     };
