@@ -53,13 +53,14 @@ export async function getEstimate(from, to, amount) {
     }
 }
 
-export async function createOrder(from, to, amount, toAddress) {
+export async function createOrder(from, to, amount, toAddress, ip_user) {
   try {
     const data = {
       from: from,
       to: to,
       amount: amount,
-      toAddress: toAddress
+      toAddress: toAddress,
+      userDeviceId: ip_user
     };
   
     // Configuration des en-têtes
