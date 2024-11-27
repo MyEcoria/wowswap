@@ -40,18 +40,25 @@ export async function getNanswapCurrency() {
 }
 
 export async function getEstimate(from, to, amount) {
-    try {
-      // Récupérer les tokens existants depuis l'API Nanswap
-      const response = await axios.get(`https://api.nanswap.com/v1/get-estimate?from=${from}&to=${to}&amount=${amount}`);
-      const tokens = response.data;
-  
-      return tokens;
-      
-  
-    } catch (error) {
-      console.error("Erreur lors de la récupération des tokens:", error);
-      throw error;
-    }
+  try {
+    // Configuration des en-têtes
+    const config = {
+      headers: {
+        'nanswap-api-key': general["nanswap"], // Remplacez par votre token réel
+        'Content-Type': 'application/json'
+      }
+    };
+
+    // Récupérer les tokens existants depuis l'API Nanswap
+    const response = await axios.get(`https://api.nanswap.com/v1/get-estimate?from=${from}&to=${to}&amount=${amount}`, config);
+    const tokens = response.data;
+
+    return tokens;
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des tokens:", error);
+    throw error;
+  }
 }
 
 export async function createOrder(from, to, amount, toAddress, ip_user) {
@@ -67,7 +74,7 @@ export async function createOrder(from, to, amount, toAddress, ip_user) {
     // Configuration des en-têtes
     const config = {
       headers: {
-        'nanswap-api-key': general["nanswap"], // Remplacez par votre token réel
+        'nanswap-api-key': general["nanswap"],
         'Content-Type': 'application/json'
       }
     };
