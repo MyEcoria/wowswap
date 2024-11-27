@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getPairRate } from './getMarket.mjs';
 import swap from '../config/swap.json' assert { type: 'json' };
+import general from '../config/general.json' assert { type: 'json' };
 import Decimal from 'decimal.js';
 
 
@@ -66,7 +67,7 @@ export async function createOrder(from, to, amount, toAddress, ip_user) {
     // Configuration des en-têtes
     const config = {
       headers: {
-        'nanswap-api-key': 'c23424a1-0fd9-43eb-9eb2-8072a62920aa', // Remplacez par votre token réel
+        'nanswap-api-key': general["nanswap"], // Remplacez par votre token réel
         'Content-Type': 'application/json'
       }
     };
